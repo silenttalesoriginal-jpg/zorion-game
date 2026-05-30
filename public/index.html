@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zorion</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="homeScreen">
+        <div class="menuBox">
+            <h1 class="gameLogo">ZORION</h1>
+            <p class="subtitle">Rule the Arena</p>
+
+            <input id="nicknameInput" maxlength="16" placeholder="Enter nickname">
+
+            <p class="chooseText">Choose Color</p>
+
+            <div class="colorGrid">
+                <button class="colorBtn selected" data-color="#ff0000" style="background:#ff0000;"></button>
+                <button class="colorBtn" data-color="#ff8c00" style="background:#ff8c00;"></button>
+                <button class="colorBtn" data-color="#ffff00" style="background:#ffff00;"></button>
+                <button class="colorBtn" data-color="#00ff66" style="background:#00ff66;"></button>
+                <button class="colorBtn" data-color="#0099ff" style="background:#0099ff;"></button>
+                <button class="colorBtn" data-color="#9d00ff" style="background:#9d00ff;"></button>
+            </div>
+
+            <div id="previewPlayer"></div>
+
+            <div id="ownerBox" class="hidden">
+                <p class="ownerTitle">🌈 OWNER LOGIN</p>
+                <input id="ownerCodeInput" type="password" placeholder="Enter owner code">
+            </div>
+
+            <button id="playBtn">PLAY</button>
+        </div>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <div id="hud" class="hidden">
+        <div id="kingText">👑 No KING yet</div>
+        <div id="scoreBox">Score: 0</div>
+        <div id="tabHint">Hold TAB for players</div>
+
+        <button id="mobileBoostBtn">BOOST</button>
+        <button id="settingsBtn">⚙</button>
+    </div>
+
+    <div id="tabList" class="hidden">
+        <div class="tabTitle">PLAYERS</div>
+        <div id="tabPlayers"></div>
+    </div>
+
+    <div id="deathScreen" class="hidden">
+        <div class="deathBox">
+            <h1>YOU DIED</h1>
+            <p id="deathMessage">You were killed</p>
+
+            <div class="deathStats">
+                <p>Score: <span id="deathScore">0</span></p>
+                <p>Rank: <span id="deathRank">🎯 MEMBER</span></p>
+                <p>Time Survived: <span id="deathTime">0s</span></p>
+            </div>
+
+            <button id="playAgainBtn">PLAY AGAIN</button>
+            <button id="mainMenuBtn">MAIN MENU</button>
+        </div>
+    </div>
+
+    <div id="settingsPanel" class="hidden">
+        <div class="settingsBox">
+            <h2>SETTINGS</h2>
+
+            <div class="settingRow">
+                <span>Sound</span>
+                <button id="soundToggle">ON</button>
+            </div>
+
+            <div class="settingRow">
+                <span>Minimap</span>
+                <button id="minimapToggle">ON</button>
+            </div>
+
+            <button id="closeSettingsBtn">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="messageBox"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
