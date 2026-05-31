@@ -659,20 +659,62 @@ function captureBombArea(owner, bombX, bombY) {
 
     markTerritoryDirty();
 }
+function captureTrailInsideBombRadius(owner, bombX, bombY) {
+    if (!owner || owner.alive === false) return;
+    if (!owner.trailTiles || owner.trailTiles.length === 0) return;
 
+    const remainingTrail = [];
+    const newTrailMap = {};
+    const capturedKeys = new Set();
+
+    let captured = 0;
+
+    for (const tile of owner.trailTiles) {
+        const world = hexToWorld(tile.q, tile.r);
+        const dist = Math.hypot(world.x - bombX, world.y - bombY);
+        const key = tileKey(tile.q, tile.r);
+
+        if (dist <= BOMB_CAPTURE_RADIUS && isTileInsideMap(tile.q, tile.r)) {
+            if (!owner.territoryTiles[key]) {
+                captured++;
+            }
+
+            owner.territoryTiles[key] = { q: tile.q, r: tile.r };
+            capturedKeys.add(key);
+        } else {
+            remainingTrail.push(tile);
+            newTrailMap[key] = true;
+        }
+    }
+
+    removeCapturedTilesFromEnemies(owner.id, capturedKeys);
+
+    owner.score += captured * SCORE_PER_TILE;
+
+    owner.trailTiles = remainingTrail;
+    owner.trailTileMap = newTrailMap;
+
+    if (captured > 0) {
+        markTerritoryDirty();
+    }
+}
 function explodeBomb(bomb) {
     const owner = players[bomb.ownerId];
 
     if (owner && owner.alive !== false) {
     captureBombArea(owner, bomb.x, bomb.y);
-
-    // If owner is outside territory with a trail,
-    // bomb explosion also turns current trail into territory.
-    if (owner.trailTiles && owner.trailTiles.length > 0) {
-        captureTrail(owner);
-        owner.wasOutsideTerritory = false;
-    }
+    captureTrailInsideBombRadius(owner, bomb.x, bomb.y);
 }
+
+    
+
+    
+     
+    
+        
+        
+    
+
         
     
 

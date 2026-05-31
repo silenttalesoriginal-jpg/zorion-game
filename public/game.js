@@ -1981,7 +1981,7 @@ function drawMinimap(me) {
         const p = players[id];
         if (!p || p.alive === false || !p.trailTiles) continue;
 
-        ctx.fillStyle = isOwnerPlayer(p) ? rainbowColor(100) : p.color;
+        ctx.fillStyle = p.color || "#ff0000";
         ctx.globalAlpha = 0.95;
 
         for (const tile of p.trailTiles) {
