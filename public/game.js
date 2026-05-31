@@ -1413,9 +1413,9 @@ function drawTrailTiles(p) {
         const world = hexToWorld(tile.q, tile.r);
         const pos = worldToScreen(world.x, world.y);
 
-        const color = isOwnerPlayer(p)
-            ? `hsl(${(Date.now() / 12 + i * 24) % 360}, 100%, 60%)`
-            : p.color;
+        const color = p.color || "#ff0000";
+            
+          
 
         drawHex(pos.x, pos.y, mapInfo.hexSize - 3);
 

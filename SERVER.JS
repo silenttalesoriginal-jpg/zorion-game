@@ -522,10 +522,15 @@ function captureTrail(player) {
         if (!isTileInsideMap(tile.q, tile.r)) continue;
 
         if (!player.territoryTiles[key]) {
-            player.territoryTiles[key] = { q: tile.q, r: tile.r };
-            captured++;
-            capturedKeys.add(key);
-        }
+    captured++;
+}
+
+player.territoryTiles[key] = { q: tile.q, r: tile.r };
+capturedKeys.add(key);
+            
+        
+    
+        
     }
 
     if (player.trailTiles.length >= 4) {
@@ -584,10 +589,15 @@ function captureTrail(player) {
                 if (outsideVisited[key]) continue;
 
                 if (!player.territoryTiles[key]) {
-                    player.territoryTiles[key] = { q, r };
-                    captured++;
-                    capturedKeys.add(key);
-                }
+                 captured++;
+                } 
+
+                 player.territoryTiles[key] = { q, r };
+                 capturedKeys.add(key);
+                    
+                    
+                    
+                
 
                 if (captured > MAX_CAPTURE_TILES) break;
             }
@@ -632,20 +642,22 @@ function captureBombArea(owner, bombX, bombY) {
 
             const key = tileKey(q, r);
 
+            // Always make this tile owner's territory
             if (!owner.territoryTiles[key]) {
-                owner.territoryTiles[key] = { q, r };
                 captured++;
-                capturedKeys.add(key);
             }
+
+            owner.territoryTiles[key] = { q, r };
+            capturedKeys.add(key);
         }
     }
 
+    // remove same tiles from enemies
     removeCapturedTilesFromEnemies(owner.id, capturedKeys);
+
     owner.score += captured * SCORE_PER_TILE;
 
-    if (captured > 0) {
-        markTerritoryDirty();
-    }
+    markTerritoryDirty();
 }
 
 function explodeBomb(bomb) {
