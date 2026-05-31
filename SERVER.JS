@@ -17,7 +17,7 @@ let bombIdCounter = 1;
 let territoryDirty = true;
 let lastFullStateAt = 0;
 
-const FULL_STATE_INTERVAL_MS = 700;
+const FULL_STATE_INTERVAL_MS = 2500;
 
 const OWNER_SECRET_CODE = "135123543534563Prabhas";
 
@@ -1433,10 +1433,15 @@ setInterval(() => {
     checkTrailKills();
     updateRanks();
 
+    if (Date.now() % 3 === 0) {
     io.emit("bombState", {
         pickups: bombPickups,
         placed: placedBombs
     });
+    
+}
+        
+
 
     io.emit("gameStateLite", getLitePlayersState());
 
@@ -1447,7 +1452,7 @@ setInterval(() => {
         territoryDirty = false;
         lastFullStateAt = now;
     }
-}, 1000 / 30);
+}, 1000 / 20);
 
 server.listen(3000, () => {
     createAIPlayers();

@@ -1028,9 +1028,8 @@ function rainbowColor(offset = 0) {
 }
 
 function getPlayerColor(p) {
-    return isOwnerPlayer(p) ? rainbowColor(90) : p.color;
+    return p.color || "#ff0000";
 }
-
 function drawHex(cx, cy, size) {
     ctx.beginPath();
 
@@ -1436,13 +1435,19 @@ function drawTrailTiles(p) {
 }
 
 function isSpawnProtected(p) {
-    return p.spawnProtectedUntil && Date.now() < p.spawnProtectedUntil;
+    if (!p || !p.spawnProtectedUntil) return false;
+
+    const timeLeft = p.spawnProtectedUntil - Date.now();
+
+    return timeLeft > 0 && timeLeft <= 5000;
 }
 
 function drawSpawnProtection(pos, p) {
     if (!isSpawnProtected(p)) return;
 
-    const timeLeft = Math.max(0, p.spawnProtectedUntil - Date.now());
+    const timeLeft = p.spawnProtectedUntil - Date.now();
+
+if (timeLeft <= 0 || timeLeft > 5000) return;
     const pulse = 0.55 + Math.sin(Date.now() / 90) * 0.25;
 
     ctx.save();
