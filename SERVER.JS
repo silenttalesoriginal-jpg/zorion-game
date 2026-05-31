@@ -664,8 +664,17 @@ function explodeBomb(bomb) {
     const owner = players[bomb.ownerId];
 
     if (owner && owner.alive !== false) {
-        captureBombArea(owner, bomb.x, bomb.y);
+    captureBombArea(owner, bomb.x, bomb.y);
+
+    // If owner is outside territory with a trail,
+    // bomb explosion also turns current trail into territory.
+    if (owner.trailTiles && owner.trailTiles.length > 0) {
+        captureTrail(owner);
+        owner.wasOutsideTerritory = false;
     }
+}
+        
+    
 
     for (const id in players) {
         const p = players[id];
