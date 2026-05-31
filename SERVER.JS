@@ -114,7 +114,7 @@ function getLitePlayersState() {
             boosting: p.boosting,
             alive: p.alive,
             spawnProtectedUntil: p.spawnProtectedUntil,
-            trailCount: p.trailTiles ? p.trailTiles.length : 0
+            trailTiles: p.trailTiles || []
         };
     }
 
