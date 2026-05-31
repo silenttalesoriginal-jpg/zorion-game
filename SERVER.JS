@@ -527,7 +527,7 @@ function captureTrail(player) {
     filledAreaCount++;
 }
 
-player.territoryTiles[key] = { q, r };
+player.territoryTiles[key] = { q: tile.q, r: tile.r };
 capturedKeys.add(key);
      
         
