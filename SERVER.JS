@@ -38,7 +38,7 @@ const MAX_TRAIL_TILES = 99999;
 
 const ARENA_BORDER_SAFE_GAP = HEX_SIZE * 2.4;
 
-const CAPTURE_PADDING = 60;
+const CAPTURE_PADDING = 80;
 const MAX_CAPTURE_TILES = 100000;
 
 const SCORE_PER_TILE = 5;
@@ -507,7 +507,7 @@ function killPlayersInsideCapturedArea(ownerId, capturedKeys) {
 }
 
 function captureTrail(player) {
-    if (!player.trailTiles || player.trailTiles.length === 0) {
+    if (!player.trailTiles || player.trailTiles.length < 2) {
         player.trailTiles = [];
         player.trailTileMap = {};
         return;
@@ -516,43 +516,33 @@ function captureTrail(player) {
     let captured = 0;
     const capturedKeys = new Set();
 
-    // 1. First convert trail into territory
-    for (const tile of player.trailTiles) {
-        if (!isTileInsideMap(tile.q, tile.r)) continue;
+    const bounds = getCaptureBounds(player);
+    bounds.minQ -= 80;
+    bounds.maxQ += 80;
+    bounds.minR -= 80;
+    bounds.maxR += 80;
 
-        const key = tileKey(tile.q, tile.r);
-
-        if (!player.territoryTiles[key]) {
-            captured++;
-        }
-
-        player.territoryTiles[key] = { q: tile.q, r: tile.r };
-        capturedKeys.add(key);
-    }
-
-    // 2. Make blockers from player's territory
     const blockers = {};
+
+    // Your old territory is wall
     for (const key in player.territoryTiles) {
         blockers[key] = true;
     }
 
-    // 3. Use FULL arena bounds, not small trail bounds
-    const centerHex = worldToHex(MAP_CENTER_X, MAP_CENTER_Y);
-    const radiusTiles = Math.ceil(MAP_RADIUS / HEX_SIZE) + 8;
-
-    const minQ = centerHex.q - radiusTiles;
-    const maxQ = centerHex.q + radiusTiles;
-    const minR = centerHex.r - radiusTiles;
-    const maxR = centerHex.r + radiusTiles;
+    // Your trail is also wall
+    for (const tile of player.trailTiles) {
+        if (!isTileInsideMap(tile.q, tile.r)) continue;
+        blockers[tileKey(tile.q, tile.r)] = true;
+    }
 
     const outsideVisited = {};
     const queue = [];
     let queueIndex = 0;
 
-    // 4. Start flood fill from arena outside/border
-    for (let q = minQ; q <= maxQ; q++) {
-        for (let r = minR; r <= maxR; r++) {
-            if (q !== minQ && q !== maxQ && r !== minR && r !== maxR) continue;
+    // Flood from outside edges of capture box
+    for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
+        for (let r = bounds.minR; r <= bounds.maxR; r++) {
+            if (q !== bounds.minQ && q !== bounds.maxQ && r !== bounds.minR && r !== bounds.maxR) continue;
             if (!isTileInsideMap(q, r)) continue;
 
             const key = tileKey(q, r);
@@ -570,23 +560,34 @@ function captureTrail(player) {
             const nq = current.q + dir.q;
             const nr = current.r + dir.r;
 
-            if (nq < minQ || nq > maxQ || nr < minR || nr > maxR) continue;
+            if (nq < bounds.minQ || nq > bounds.maxQ || nr < bounds.minR || nr > bounds.maxR) continue;
             if (!isTileInsideMap(nq, nr)) continue;
 
-            const nKey = tileKey(nq, nr);
-            if (blockers[nKey]) continue;
-            if (outsideVisited[nKey]) continue;
+            const key = tileKey(nq, nr);
+            if (blockers[key] || outsideVisited[key]) continue;
 
-            outsideVisited[nKey] = true;
+            outsideVisited[key] = true;
             queue.push({ q: nq, r: nr });
         }
     }
 
-    // 5. Any tile not reachable from outside is inside your closed loop
+    // Capture trail tiles
+    for (const tile of player.trailTiles) {
+        if (!isTileInsideMap(tile.q, tile.r)) continue;
+
+        const key = tileKey(tile.q, tile.r);
+
+        if (!player.territoryTiles[key]) captured++;
+
+        player.territoryTiles[key] = { q: tile.q, r: tile.r };
+        capturedKeys.add(key);
+    }
+
+    // Capture inside loop
     let filledAreaCount = 0;
 
-    for (let q = minQ; q <= maxQ; q++) {
-        for (let r = minR; r <= maxR; r++) {
+    for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
+        for (let r = bounds.minR; r <= bounds.maxR; r++) {
             if (!isTileInsideMap(q, r)) continue;
 
             const key = tileKey(q, r);
@@ -600,10 +601,10 @@ function captureTrail(player) {
             captured++;
             filledAreaCount++;
 
-            if (filledAreaCount > MAX_CAPTURE_TILES) break;
+            if (filledAreaCount >= MAX_CAPTURE_TILES) break;
         }
 
-        if (filledAreaCount > MAX_CAPTURE_TILES) break;
+        if (filledAreaCount >= MAX_CAPTURE_TILES) break;
     }
 
     removeCapturedTilesFromEnemies(player.id, capturedKeys);
