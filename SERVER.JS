@@ -38,8 +38,8 @@ const MAX_TRAIL_TILES = 99999;
 
 const ARENA_BORDER_SAFE_GAP = HEX_SIZE * 2.4;
 
-const CAPTURE_PADDING = 16;
-const MAX_CAPTURE_TILES = 13000;
+const CAPTURE_PADDING = 60;
+const MAX_CAPTURE_TILES = 100000;
 
 const SCORE_PER_TILE = 5;
 const KILL_SCORE = 250;
@@ -514,6 +514,7 @@ function captureTrail(player) {
     }
 
     let captured = 0;
+    let filledAreaCount = 0;
     const capturedKeys = new Set();
 
     for (const tile of player.trailTiles) {
@@ -523,13 +524,12 @@ function captureTrail(player) {
 
         if (!player.territoryTiles[key]) {
     captured++;
+    filledAreaCount++;
 }
 
-player.territoryTiles[key] = { q: tile.q, r: tile.r };
+player.territoryTiles[key] = { q, r };
 capturedKeys.add(key);
-            
-        
-    
+     
         
     }
 
@@ -599,10 +599,10 @@ capturedKeys.add(key);
                     
                 
 
-                if (captured > MAX_CAPTURE_TILES) break;
+                if (filledAreaCount > MAX_CAPTURE_TILES) break;
             }
 
-            if (captured > MAX_CAPTURE_TILES) break;
+            if (filledAreaCount > MAX_CAPTURE_TILES) break;
         }
     }
 
@@ -659,32 +659,43 @@ function captureBombArea(owner, bombX, bombY) {
 
     markTerritoryDirty();
 }
-function captureTrailInsideBombRadius(owner, bombX, bombY) {
+function captureTrailUpToBomb(owner, bombX, bombY) {
     if (!owner || owner.alive === false) return;
     if (!owner.trailTiles || owner.trailTiles.length === 0) return;
 
-    const remainingTrail = [];
-    const newTrailMap = {};
-    const capturedKeys = new Set();
+    let closestIndex = -1;
+    let closestDist = Infinity;
 
-    let captured = 0;
-
-    for (const tile of owner.trailTiles) {
+    for (let i = 0; i < owner.trailTiles.length; i++) {
+        const tile = owner.trailTiles[i];
         const world = hexToWorld(tile.q, tile.r);
         const dist = Math.hypot(world.x - bombX, world.y - bombY);
+
+        if (dist < closestDist) {
+            closestDist = dist;
+            closestIndex = i;
+        }
+    }
+
+    if (closestIndex === -1) return;
+
+    const capturedTrail = owner.trailTiles.slice(0, closestIndex + 1);
+    const remainingTrail = owner.trailTiles.slice(closestIndex + 1);
+
+    const capturedKeys = new Set();
+    let captured = 0;
+
+    for (const tile of capturedTrail) {
+        if (!isTileInsideMap(tile.q, tile.r)) continue;
+
         const key = tileKey(tile.q, tile.r);
 
-        if (dist <= BOMB_CAPTURE_RADIUS && isTileInsideMap(tile.q, tile.r)) {
-            if (!owner.territoryTiles[key]) {
-                captured++;
-            }
-
-            owner.territoryTiles[key] = { q: tile.q, r: tile.r };
-            capturedKeys.add(key);
-        } else {
-            remainingTrail.push(tile);
-            newTrailMap[key] = true;
+        if (!owner.territoryTiles[key]) {
+            captured++;
         }
+
+        owner.territoryTiles[key] = { q: tile.q, r: tile.r };
+        capturedKeys.add(key);
     }
 
     removeCapturedTilesFromEnemies(owner.id, capturedKeys);
@@ -692,31 +703,24 @@ function captureTrailInsideBombRadius(owner, bombX, bombY) {
     owner.score += captured * SCORE_PER_TILE;
 
     owner.trailTiles = remainingTrail;
-    owner.trailTileMap = newTrailMap;
+    owner.trailTileMap = {};
 
-    if (captured > 0) {
-        markTerritoryDirty();
+    for (const tile of remainingTrail) {
+        owner.trailTileMap[tileKey(tile.q, tile.r)] = true;
     }
+
+    owner.wasOutsideTerritory = remainingTrail.length > 0;
+
+    markTerritoryDirty();
 }
 function explodeBomb(bomb) {
     const owner = players[bomb.ownerId];
 
     if (owner && owner.alive !== false) {
     captureBombArea(owner, bomb.x, bomb.y);
-    captureTrailInsideBombRadius(owner, bomb.x, bomb.y);
+    captureTrailUpToBomb(owner, bomb.x, bomb.y);
 }
 
-    
-
-    
-     
-    
-        
-        
-    
-
-        
-    
 
     for (const id in players) {
         const p = players[id];
