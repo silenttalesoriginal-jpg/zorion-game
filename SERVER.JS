@@ -514,96 +514,96 @@ function captureTrail(player) {
     }
 
     let captured = 0;
-    let filledAreaCount = 0;
     const capturedKeys = new Set();
 
+    // 1. First convert trail into territory
     for (const tile of player.trailTiles) {
-        const key = tileKey(tile.q, tile.r);
-
         if (!isTileInsideMap(tile.q, tile.r)) continue;
 
-        if (!player.territoryTiles[key]) {
-    captured++;
-    filledAreaCount++;
-}
+        const key = tileKey(tile.q, tile.r);
 
-player.territoryTiles[key] = { q: tile.q, r: tile.r };
-capturedKeys.add(key);
-     
-        
+        if (!player.territoryTiles[key]) {
+            captured++;
+        }
+
+        player.territoryTiles[key] = { q: tile.q, r: tile.r };
+        capturedKeys.add(key);
     }
 
-    if (player.trailTiles.length >= 4) {
-        const bounds = getCaptureBounds(player);
-        const blockers = {};
-        const outsideVisited = {};
-        const queue = [];
+    // 2. Make blockers from player's territory
+    const blockers = {};
+    for (const key in player.territoryTiles) {
+        blockers[key] = true;
+    }
 
-        for (const key in player.territoryTiles) {
-            blockers[key] = true;
+    // 3. Use FULL arena bounds, not small trail bounds
+    const centerHex = worldToHex(MAP_CENTER_X, MAP_CENTER_Y);
+    const radiusTiles = Math.ceil(MAP_RADIUS / HEX_SIZE) + 8;
+
+    const minQ = centerHex.q - radiusTiles;
+    const maxQ = centerHex.q + radiusTiles;
+    const minR = centerHex.r - radiusTiles;
+    const maxR = centerHex.r + radiusTiles;
+
+    const outsideVisited = {};
+    const queue = [];
+    let queueIndex = 0;
+
+    // 4. Start flood fill from arena outside/border
+    for (let q = minQ; q <= maxQ; q++) {
+        for (let r = minR; r <= maxR; r++) {
+            if (q !== minQ && q !== maxQ && r !== minR && r !== maxR) continue;
+            if (!isTileInsideMap(q, r)) continue;
+
+            const key = tileKey(q, r);
+            if (blockers[key] || outsideVisited[key]) continue;
+
+            outsideVisited[key] = true;
+            queue.push({ q, r });
         }
+    }
 
-        for (const tile of player.trailTiles) {
-            if (isTileInsideMap(tile.q, tile.r)) {
-                blockers[tileKey(tile.q, tile.r)] = true;
-            }
+    while (queueIndex < queue.length) {
+        const current = queue[queueIndex++];
+
+        for (const dir of HEX_DIRECTIONS) {
+            const nq = current.q + dir.q;
+            const nr = current.r + dir.r;
+
+            if (nq < minQ || nq > maxQ || nr < minR || nr > maxR) continue;
+            if (!isTileInsideMap(nq, nr)) continue;
+
+            const nKey = tileKey(nq, nr);
+            if (blockers[nKey]) continue;
+            if (outsideVisited[nKey]) continue;
+
+            outsideVisited[nKey] = true;
+            queue.push({ q: nq, r: nr });
         }
+    }
 
-        for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
-            for (let r = bounds.minR; r <= bounds.maxR; r++) {
-                if (!isBoundaryTile(q, r, bounds)) continue;
-                if (!isTileInsideMap(q, r)) continue;
+    // 5. Any tile not reachable from outside is inside your closed loop
+    let filledAreaCount = 0;
 
-                const key = tileKey(q, r);
-                if (blockers[key] || outsideVisited[key]) continue;
+    for (let q = minQ; q <= maxQ; q++) {
+        for (let r = minR; r <= maxR; r++) {
+            if (!isTileInsideMap(q, r)) continue;
 
-                outsideVisited[key] = true;
-                queue.push({ q, r });
-            }
-        }
+            const key = tileKey(q, r);
 
-        while (queue.length > 0) {
-            const current = queue.shift();
+            if (outsideVisited[key]) continue;
+            if (player.territoryTiles[key]) continue;
 
-            for (const dir of HEX_DIRECTIONS) {
-                const nq = current.q + dir.q;
-                const nr = current.r + dir.r;
-                const nKey = tileKey(nq, nr);
+            player.territoryTiles[key] = { q, r };
+            capturedKeys.add(key);
 
-                if (!isInBounds(nq, nr, bounds)) continue;
-                if (!isTileInsideMap(nq, nr)) continue;
-                if (blockers[nKey]) continue;
-                if (outsideVisited[nKey]) continue;
-
-                outsideVisited[nKey] = true;
-                queue.push({ q: nq, r: nr });
-            }
-        }
-
-        for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
-            for (let r = bounds.minR; r <= bounds.maxR; r++) {
-                if (!isTileInsideMap(q, r)) continue;
-
-                const key = tileKey(q, r);
-
-                if (outsideVisited[key]) continue;
-
-                if (!player.territoryTiles[key]) {
-                 captured++;
-                } 
-
-                 player.territoryTiles[key] = { q, r };
-                 capturedKeys.add(key);
-                    
-                    
-                    
-                
-
-                if (filledAreaCount > MAX_CAPTURE_TILES) break;
-            }
+            captured++;
+            filledAreaCount++;
 
             if (filledAreaCount > MAX_CAPTURE_TILES) break;
         }
+
+        if (filledAreaCount > MAX_CAPTURE_TILES) break;
     }
 
     removeCapturedTilesFromEnemies(player.id, capturedKeys);
@@ -613,10 +613,9 @@ capturedKeys.add(key);
 
     player.trailTiles = [];
     player.trailTileMap = {};
+    player.wasOutsideTerritory = false;
 
-    if (captured > 0) {
-        markTerritoryDirty();
-    }
+    markTerritoryDirty();
 }
 
 function captureBombArea(owner, bombX, bombY) {
