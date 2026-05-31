@@ -881,6 +881,8 @@ function placeMyBomb() {
     socket.emit("placeBomb");
 }
 
+let lastMoveSend = 0;
+
 window.addEventListener("mousemove", (e) => {
     if (!joinedGame) return;
 
@@ -888,6 +890,19 @@ window.addEventListener("mousemove", (e) => {
         e.clientY - canvas.height / 2,
         e.clientX - canvas.width / 2
     );
+
+    // instantly update your own player locally
+    if (players[myId]) {
+        players[myId].angle = angle;
+    }
+
+    // do not spam server too much
+    const now = Date.now();
+    if (now - lastMoveSend > 33) {
+        socket.emit("move", { angle });
+        lastMoveSend = now;
+    }
+});
 
     socket.emit("move", { angle });
 });
