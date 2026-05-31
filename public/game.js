@@ -1097,7 +1097,7 @@ function drawPlacedBombs() {
     for (const bomb of placedBombs) {
         const pos = worldToScreen(bomb.x, bomb.y);
         const timeLeft = Math.max(0, bomb.explodeAt - Date.now());
-        const seconds = Math.ceil(timeLeft / 1000);
+        const seconds = Math.max(1, Math.min(5, Math.ceil(timeLeft / 1000)));
         const progress = 1 - timeLeft / 5000;
 
         const flicker = 0.22 + Math.sin(Date.now() / 80) * 0.12;
@@ -1472,8 +1472,9 @@ function drawSpawnProtection(pos, p) {
     ctx.lineWidth = 3;
 
     const seconds = Math.ceil(timeLeft / 1000);
-    ctx.strokeText(`SAFE ${seconds}`, pos.x, pos.y + 48);
-    ctx.fillText(`SAFE ${seconds}`, pos.x, pos.y + 48);
+    ctx.strokeText(`SAFE`, pos.x, pos.y + 48);
+    ctx.fillText(`SAFE`, pos.x, pos.y + 48);
+   
 
     ctx.restore();
 }
