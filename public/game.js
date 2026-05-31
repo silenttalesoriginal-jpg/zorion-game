@@ -904,8 +904,6 @@ window.addEventListener("mousemove", (e) => {
     }
 });
 
-    socket.emit("move", { angle });
-});
 window.addEventListener("mousedown", (e) => {
     if (e.button === 0) {
         sendBoost(true);
