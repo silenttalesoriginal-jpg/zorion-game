@@ -38,7 +38,7 @@ const MAX_TRAIL_TILES = 99999;
 
 const ARENA_BORDER_SAFE_GAP = HEX_SIZE * 2.4;
 
-const CAPTURE_PADDING = 80;
+const CAPTURE_PADDING = 60;
 const MAX_CAPTURE_TILES = 100000;
 
 const SCORE_PER_TILE = 5;
@@ -507,104 +507,103 @@ function killPlayersInsideCapturedArea(ownerId, capturedKeys) {
 }
 
 function captureTrail(player) {
-    if (!player.trailTiles || player.trailTiles.length < 2) {
+    if (!player.trailTiles || player.trailTiles.length === 0) {
         player.trailTiles = [];
         player.trailTileMap = {};
         return;
     }
 
     let captured = 0;
+    let filledAreaCount = 0;
     const capturedKeys = new Set();
 
-    const bounds = getCaptureBounds(player);
-    bounds.minQ -= 80;
-    bounds.maxQ += 80;
-    bounds.minR -= 80;
-    bounds.maxR += 80;
-
-    const blockers = {};
-
-    // Your old territory is wall
-    for (const key in player.territoryTiles) {
-        blockers[key] = true;
-    }
-
-    // Your trail is also wall
     for (const tile of player.trailTiles) {
-        if (!isTileInsideMap(tile.q, tile.r)) continue;
-        blockers[tileKey(tile.q, tile.r)] = true;
-    }
-
-    const outsideVisited = {};
-    const queue = [];
-    let queueIndex = 0;
-
-    // Flood from outside edges of capture box
-    for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
-        for (let r = bounds.minR; r <= bounds.maxR; r++) {
-            if (q !== bounds.minQ && q !== bounds.maxQ && r !== bounds.minR && r !== bounds.maxR) continue;
-            if (!isTileInsideMap(q, r)) continue;
-
-            const key = tileKey(q, r);
-            if (blockers[key] || outsideVisited[key]) continue;
-
-            outsideVisited[key] = true;
-            queue.push({ q, r });
-        }
-    }
-
-    while (queueIndex < queue.length) {
-        const current = queue[queueIndex++];
-
-        for (const dir of HEX_DIRECTIONS) {
-            const nq = current.q + dir.q;
-            const nr = current.r + dir.r;
-
-            if (nq < bounds.minQ || nq > bounds.maxQ || nr < bounds.minR || nr > bounds.maxR) continue;
-            if (!isTileInsideMap(nq, nr)) continue;
-
-            const key = tileKey(nq, nr);
-            if (blockers[key] || outsideVisited[key]) continue;
-
-            outsideVisited[key] = true;
-            queue.push({ q: nq, r: nr });
-        }
-    }
-
-    // Capture trail tiles
-    for (const tile of player.trailTiles) {
-        if (!isTileInsideMap(tile.q, tile.r)) continue;
-
         const key = tileKey(tile.q, tile.r);
 
-        if (!player.territoryTiles[key]) captured++;
+        if (!isTileInsideMap(tile.q, tile.r)) continue;
 
-        player.territoryTiles[key] = { q: tile.q, r: tile.r };
-        capturedKeys.add(key);
+        if (!player.territoryTiles[key]) {
+    captured++;
+    filledAreaCount++;
+}
+
+player.territoryTiles[key] = { q, r };
+capturedKeys.add(key);
+     
+        
     }
 
-    // Capture inside loop
-    let filledAreaCount = 0;
+    if (player.trailTiles.length >= 4) {
+        const bounds = getCaptureBounds(player);
+        const blockers = {};
+        const outsideVisited = {};
+        const queue = [];
 
-    for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
-        for (let r = bounds.minR; r <= bounds.maxR; r++) {
-            if (!isTileInsideMap(q, r)) continue;
-
-            const key = tileKey(q, r);
-
-            if (outsideVisited[key]) continue;
-            if (player.territoryTiles[key]) continue;
-
-            player.territoryTiles[key] = { q, r };
-            capturedKeys.add(key);
-
-            captured++;
-            filledAreaCount++;
-
-            if (filledAreaCount >= MAX_CAPTURE_TILES) break;
+        for (const key in player.territoryTiles) {
+            blockers[key] = true;
         }
 
-        if (filledAreaCount >= MAX_CAPTURE_TILES) break;
+        for (const tile of player.trailTiles) {
+            if (isTileInsideMap(tile.q, tile.r)) {
+                blockers[tileKey(tile.q, tile.r)] = true;
+            }
+        }
+
+        for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
+            for (let r = bounds.minR; r <= bounds.maxR; r++) {
+                if (!isBoundaryTile(q, r, bounds)) continue;
+                if (!isTileInsideMap(q, r)) continue;
+
+                const key = tileKey(q, r);
+                if (blockers[key] || outsideVisited[key]) continue;
+
+                outsideVisited[key] = true;
+                queue.push({ q, r });
+            }
+        }
+
+        while (queue.length > 0) {
+            const current = queue.shift();
+
+            for (const dir of HEX_DIRECTIONS) {
+                const nq = current.q + dir.q;
+                const nr = current.r + dir.r;
+                const nKey = tileKey(nq, nr);
+
+                if (!isInBounds(nq, nr, bounds)) continue;
+                if (!isTileInsideMap(nq, nr)) continue;
+                if (blockers[nKey]) continue;
+                if (outsideVisited[nKey]) continue;
+
+                outsideVisited[nKey] = true;
+                queue.push({ q: nq, r: nr });
+            }
+        }
+
+        for (let q = bounds.minQ; q <= bounds.maxQ; q++) {
+            for (let r = bounds.minR; r <= bounds.maxR; r++) {
+                if (!isTileInsideMap(q, r)) continue;
+
+                const key = tileKey(q, r);
+
+                if (outsideVisited[key]) continue;
+
+                if (!player.territoryTiles[key]) {
+                 captured++;
+                } 
+
+                 player.territoryTiles[key] = { q, r };
+                 capturedKeys.add(key);
+                    
+                    
+                    
+                
+
+                if (filledAreaCount > MAX_CAPTURE_TILES) break;
+            }
+
+            if (filledAreaCount > MAX_CAPTURE_TILES) break;
+        }
     }
 
     removeCapturedTilesFromEnemies(player.id, capturedKeys);
@@ -614,9 +613,10 @@ function captureTrail(player) {
 
     player.trailTiles = [];
     player.trailTileMap = {};
-    player.wasOutsideTerritory = false;
 
-    markTerritoryDirty();
+    if (captured > 0) {
+        markTerritoryDirty();
+    }
 }
 
 function captureBombArea(owner, bombX, bombY) {
