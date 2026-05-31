@@ -17,7 +17,7 @@ let bombIdCounter = 1;
 let territoryDirty = true;
 let lastFullStateAt = 0;
 
-const FULL_STATE_INTERVAL_MS = 2500;
+const FULL_STATE_INTERVAL_MS = 800;
 
 const OWNER_SECRET_CODE = "135123543534563Prabhas";
 
@@ -34,7 +34,7 @@ const OWNER_BOOST_SPEED = 10.5;
 
 const HEX_SIZE = 42;
 const START_TILE_RADIUS = 2;
-const MAX_TRAIL_TILES = 99999;
+const MAX_TRAIL_TILES = 999999999999999;
 
 const ARENA_BORDER_SAFE_GAP = HEX_SIZE * 2.4;
 
@@ -42,7 +42,7 @@ const CAPTURE_PADDING = 60;
 const MAX_CAPTURE_TILES = 99999999999999;
 
 const SCORE_PER_TILE = 5;
-const KILL_SCORE = 250;
+const KILL_SCORE = 800;
 
 const SPAWN_SAFE_DISTANCE = 620;
 const SPAWN_TRAIL_SAFE_RADIUS = 5;
@@ -114,7 +114,7 @@ function getLitePlayersState() {
             boosting: p.boosting,
             alive: p.alive,
             spawnProtectedUntil: p.spawnProtectedUntil,
-            trailTiles: p.trailTiles || []
+            trailCount: p.trailTiles ? p.trailTiles.length : 0
         };
     }
 
