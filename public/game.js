@@ -38,10 +38,26 @@ async function checkLogin() {
 
     if (!data.loggedIn) {
         homeScreen.innerHTML = `
-            <div class="homeBox">
-                <h1>ZORION</h1>
-                <p>Please sign in to play</p>
-                <button onclick="window.location.href='/auth/google'">Continue with Google</button>
+            <div class="zorionAuthPage">
+                <div class="zorionStars"></div>
+
+                <div class="zorionLogoBig">ZORION</div>
+                <div class="zorionTagline">MULTIPLAYER • BATTLE • SURVIVE</div>
+
+                <div class="authCard">
+                    <h2>WELCOME TO ZORION</h2>
+                    <p>Sign in to start your adventure</p>
+
+                    <button class="googleBtn" onclick="window.location.href='/auth/google'">
+                        <span class="googleCircle">G</span>
+                        CONTINUE WITH GOOGLE
+                    </button>
+
+                    <div class="secureText">🛡 Secure login • No spam • Play anywhere</div>
+                </div>
+
+                <div class="planetGlow"></div>
+                <div class="authFooter">© 2026 Zorion Game</div>
             </div>
         `;
         return;
@@ -49,11 +65,25 @@ async function checkLogin() {
 
     if (data.needsUsername) {
         homeScreen.innerHTML = `
-            <div class="homeBox">
-                <h1>Choose Username</h1>
-                <input id="fixedUsernameInput" placeholder="Enter username" maxlength="16">
-                <button id="saveUsernameBtn">Save Username</button>
-                <p id="usernameError"></p>
+            <div class="zorionAuthPage">
+                <div class="zorionStars"></div>
+
+                <div class="usernameCard">
+                    <div class="userIcon">👤</div>
+                    <h2>CHOOSE YOUR USERNAME</h2>
+                    <p>This will be your identity in Zorion</p>
+
+                    <input id="fixedUsernameInput" class="zorionInput" placeholder="Enter username" maxlength="16">
+
+                    <div class="usernameRules">
+                        <div>• 3-16 characters</div>
+                        <div>• Letters, numbers & underscores only</div>
+                        <div class="warningText">⚠ This username can't be changed later</div>
+                    </div>
+
+                    <button id="saveUsernameBtn" class="purpleBtn">SAVE USERNAME</button>
+                    <p id="usernameError" class="errorText"></p>
+                </div>
             </div>
         `;
 
@@ -62,9 +92,7 @@ async function checkLogin() {
 
             const saveRes = await fetch("/api/set-username", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username })
             });
 
@@ -83,13 +111,105 @@ async function checkLogin() {
 
     loggedUser = data.user;
 
-    if (nicknameInput) {
-        nicknameInput.value = loggedUser.username;
-        nicknameInput.disabled = true;
-    }
+    homeScreen.innerHTML = `
+        <div class="zorionHomeLandscape">
+            <div class="sideMenu">
+                <div class="sideLogo">ZORION</div>
+
+                <button class="sideBtn active" id="enterGameBtn">▶ PLAY</button>
+                <button class="sideBtn">🎨 SKINS</button>
+                <button class="sideBtn">🏆 LEADERBOARD</button>
+                <button class="sideBtn">📊 STATS</button>
+                <button class="sideBtn">⚙ SETTINGS</button>
+
+                <button class="logoutBtn" onclick="window.location.href='/logout'">↪ LOGOUT</button>
+            </div>
+
+            <div class="mainHomeArea">
+                <div class="mainTitle">ZORION</div>
+                <div class="mainSub">BATTLE • SURVIVE • DOMINATE</div>
+
+                <div class="playCards">
+                    <div class="playCard">
+                        <div class="cardIcon">👥</div>
+                        <h3>QUICK PLAY</h3>
+                        <p>Jump into a match and play online</p>
+                        <button id="quickPlayBtn">PLAY NOW</button>
+                    </div>
+
+                    <div class="playCard">
+                        <div class="cardIcon">➕</div>
+                        <h3>CREATE ROOM</h3>
+                        <p>Create your own room and invite friends</p>
+                        <button>CREATE</button>
+                    </div>
+
+                    <div class="playCard">
+                        <div class="cardIcon">🔗</div>
+                        <h3>JOIN ROOM</h3>
+                        <p>Join with room code and play together</p>
+                        <button>JOIN</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profilePanel">
+                <div class="profileBox">
+                    <div class="avatarGlow">🛡</div>
+                    <h3>${loggedUser.username}</h3>
+                    <p>Bronze I</p>
+                    <div class="xpBar"><span></span></div>
+                </div>
+
+                <div class="statsBox">
+                    <h4>STATS</h4>
+                    <p>Matches Played <b>0</b></p>
+                    <p>Wins <b>0</b></p>
+                    <p>Kills <b>0</b></p>
+                    <p>Best Score <b>0</b></p>
+                </div>
+
+                <div class="premiumBox">
+                    <h3>👑 GET PREMIUM</h3>
+                    <p>Unlock cool skins, rewards and more!</p>
+                    <button>VIEW PLANS</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("quickPlayBtn").onclick = () => {
+        startGameWithLoggedUser();
+    };
+
+    document.getElementById("enterGameBtn").onclick = () => {
+        startGameWithLoggedUser();
+    };
 }
 
 checkLogin();
+function startGameWithLoggedUser() {
+    if (!loggedUser) return;
+
+    initAudio();
+
+    socket.emit("joinGame", {
+        name: loggedUser.username,
+        color: selectedColor,
+        ownerCode: ownerCodeInput ? ownerCodeInput.value.trim() : ""
+    });
+
+    joinedGame = true;
+    isBoosting = false;
+    camera.ready = false;
+
+    homeScreen.classList.add("hidden");
+    deathScreen.classList.add("hidden");
+    hud.classList.remove("hidden");
+
+    updateGameOnlyUI();
+    updateBombUI();
+}
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 

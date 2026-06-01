@@ -1002,3 +1002,362 @@ canvas {
         left: 12px !important;
     }
 }
+.zorionAuthPage {
+    width: 100vw;
+    height: 100vh;
+    background:
+        radial-gradient(circle at 50% 95%, rgba(122, 0, 255, 0.45), transparent 35%),
+        radial-gradient(circle at 75% 20%, rgba(0, 234, 255, 0.25), transparent 30%),
+        linear-gradient(135deg, #02040d, #071427 55%, #140018);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    font-family: Arial, sans-serif;
+}
+
+.zorionStars {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(white 1px, transparent 1px),
+        radial-gradient(rgba(0,234,255,0.8) 1px, transparent 1px);
+    background-size: 120px 120px, 180px 180px;
+    opacity: 0.18;
+}
+
+.zorionLogoBig {
+    position: absolute;
+    top: 70px;
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    font-style: italic;
+    text-shadow: 0 0 25px #693cff, 0 0 45px #00eaff;
+}
+
+.zorionTagline {
+    position: absolute;
+    top: 150px;
+    letter-spacing: 7px;
+    color: #b8c8ff;
+    font-size: 13px;
+}
+
+.authCard,
+.usernameCard {
+    width: 420px;
+    padding: 34px;
+    border-radius: 18px;
+    background: rgba(5, 12, 32, 0.75);
+    border: 1px solid rgba(130, 160, 255, 0.25);
+    box-shadow: 0 0 45px rgba(116, 61, 255, 0.25);
+    text-align: center;
+    z-index: 2;
+    backdrop-filter: blur(12px);
+}
+
+.authCard h2,
+.usernameCard h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.authCard p,
+.usernameCard p {
+    color: #cbd4ff;
+    margin-bottom: 24px;
+}
+
+.googleBtn,
+.purpleBtn {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 9px;
+    color: white;
+    font-weight: 900;
+    cursor: pointer;
+    background: linear-gradient(90deg, #315cff, #8b2cff);
+    box-shadow: 0 0 22px rgba(84, 90, 255, 0.5);
+}
+
+.googleCircle {
+    background: white;
+    color: #315cff;
+    border-radius: 50%;
+    padding: 3px 7px;
+    margin-right: 8px;
+    font-weight: 900;
+}
+
+.secureText {
+    margin-top: 18px;
+    color: #8ee8b4;
+    font-size: 13px;
+}
+
+.planetGlow {
+    position: absolute;
+    bottom: -250px;
+    width: 950px;
+    height: 420px;
+    border-radius: 50%;
+    border-top: 4px solid #536dff;
+    box-shadow: 0 -20px 90px #6b00ff;
+}
+
+.authFooter {
+    position: absolute;
+    bottom: 35px;
+    color: rgba(255,255,255,0.45);
+    font-size: 12px;
+}
+
+.userIcon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: rgba(138, 43, 255, 0.2);
+    border: 2px solid #8b2cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    box-shadow: 0 0 30px #8b2cff;
+}
+
+.zorionInput {
+    width: 100%;
+    height: 48px;
+    border-radius: 9px;
+    border: 1px solid rgba(170, 200, 255, 0.35);
+    background: rgba(0,0,0,0.35);
+    color: white;
+    padding: 0 14px;
+    font-size: 16px;
+    outline: none;
+}
+
+.usernameRules {
+    text-align: left;
+    color: #cbd4ff;
+    font-size: 13px;
+    margin: 18px 0;
+    line-height: 1.7;
+}
+
+.warningText {
+    color: #ffd65a;
+    font-weight: 700;
+}
+
+.errorText {
+    color: #ff5c7a;
+    font-weight: 700;
+    min-height: 20px;
+}
+
+.zorionHomeLandscape {
+    width: 100vw;
+    height: 100vh;
+    color: white;
+    display: grid;
+    grid-template-columns: 240px 1fr 310px;
+    background:
+        radial-gradient(circle at 70% 20%, rgba(91, 40, 255, 0.45), transparent 25%),
+        radial-gradient(circle at 40% 85%, rgba(0, 234, 255, 0.18), transparent 30%),
+        linear-gradient(135deg, #02040d, #071427 50%, #160020);
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+.sideMenu {
+    background: rgba(0, 0, 0, 0.35);
+    border-right: 1px solid rgba(255,255,255,0.1);
+    padding: 28px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sideLogo {
+    font-size: 34px;
+    font-weight: 900;
+    font-style: italic;
+    color: #7da2ff;
+    text-shadow: 0 0 22px #713cff;
+    margin-bottom: 25px;
+}
+
+.sideBtn {
+    height: 55px;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: white;
+    font-weight: 800;
+    text-align: left;
+    padding-left: 18px;
+    cursor: pointer;
+}
+
+.sideBtn.active,
+.sideBtn:hover {
+    background: linear-gradient(90deg, #572bff, #b000ff);
+    box-shadow: 0 0 20px rgba(130, 55, 255, 0.55);
+}
+
+.logoutBtn {
+    margin-top: auto;
+    height: 52px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 70, 100, 0.5);
+    background: rgba(255, 0, 70, 0.08);
+    color: #ff6077;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.mainHomeArea {
+    padding: 45px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mainTitle {
+    font-size: 92px;
+    font-weight: 900;
+    letter-spacing: 9px;
+    font-style: italic;
+    text-shadow: 0 0 30px #536dff;
+    margin-top: 20px;
+}
+
+.mainSub {
+    color: #b8c8ff;
+    letter-spacing: 8px;
+    margin-bottom: 45px;
+}
+
+.playCards {
+    display: flex;
+    gap: 22px;
+}
+
+.playCard {
+    width: 230px;
+    min-height: 220px;
+    border-radius: 18px;
+    background: rgba(5, 12, 32, 0.75);
+    border: 1px solid rgba(130, 160, 255, 0.25);
+    box-shadow: 0 0 35px rgba(0, 234, 255, 0.12);
+    padding: 26px;
+    text-align: center;
+}
+
+.cardIcon {
+    font-size: 52px;
+    margin-bottom: 12px;
+}
+
+.playCard h3 {
+    font-size: 22px;
+    margin: 10px 0;
+}
+
+.playCard p {
+    color: #cbd4ff;
+    font-size: 14px;
+    min-height: 48px;
+}
+
+.playCard button,
+.premiumBox button {
+    width: 100%;
+    height: 42px;
+    border: none;
+    border-radius: 9px;
+    background: linear-gradient(90deg, #315cff, #a72cff);
+    color: white;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.profilePanel {
+    padding: 38px 18px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+}
+
+.profileBox,
+.statsBox,
+.premiumBox {
+    background: rgba(5, 12, 32, 0.72);
+    border: 1px solid rgba(130, 160, 255, 0.22);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+
+.avatarGlow {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(138, 43, 255, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    box-shadow: 0 0 28px #8b2cff;
+}
+
+.xpBar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.xpBar span {
+    display: block;
+    height: 100%;
+    width: 45%;
+    background: linear-gradient(90deg, #315cff, #00eaff);
+}
+
+.statsBox p {
+    display: flex;
+    justify-content: space-between;
+    color: #cbd4ff;
+}
+
+.premiumBox {
+    border-color: rgba(174, 83, 255, 0.45);
+    box-shadow: 0 0 25px rgba(137, 43, 255, 0.18);
+}
+
+@media (max-width: 900px) {
+    .zorionHomeLandscape {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+    }
+
+    .sideMenu,
+    .profilePanel {
+        display: none;
+    }
+
+    .mainTitle {
+        font-size: 52px;
+    }
+
+    .playCards {
+        flex-direction: column;
+    }
+}
