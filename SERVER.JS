@@ -58,10 +58,63 @@ app.get("/api/me", (req, res) => {
         return res.json({ loggedIn: false });
     }
 
+    const googleId = req.user.googleId;
+
+    if (!users[googleId]) {
+        users[googleId] = {
+            googleId,
+            email: req.user.email,
+            googleName: req.user.name,
+            username: "",
+            ownedSkins: [],
+            selectedSkin: "default"
+        };
+    }
+
     res.json({
         loggedIn: true,
-        user: req.user
+        user: users[googleId],
+        needsUsername: !users[googleId].username
     });
+});
+app.post("/api/set-username", express.json(), (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ success: false, message: "Not logged in" });
+    }
+
+    const googleId = req.user.googleId;
+    const username = String(req.body.username || "")
+        .replace(/[^a-zA-Z0-9_]/g, "")
+        .substring(0, 16);
+
+    if (username.length < 3) {
+        return res.json({ success: false, message: "Username must be 3+ characters" });
+    }
+
+    for (const id in users) {
+        if (users[id].username.toLowerCase() === username.toLowerCase() && id !== googleId) {
+            return res.json({ success: false, message: "Username already taken" });
+        }
+    }
+
+    if (!users[googleId]) {
+        users[googleId] = {
+            googleId,
+            email: req.user.email,
+            googleName: req.user.name,
+            username: "",
+            ownedSkins: [],
+            selectedSkin: "default"
+        };
+    }
+
+    if (users[googleId].username) {
+        return res.json({ success: false, message: "Username already fixed" });
+    }
+
+    users[googleId].username = username;
+
+    res.json({ success: true, user: users[googleId] });
 });
 
 app.get("/logout", (req, res) => {
@@ -70,7 +123,7 @@ app.get("/logout", (req, res) => {
     });
 });
 const players = {};
-
+const users = {};
 let bombPickups = [];
 let placedBombs = [];
 let bombIdCounter = 1;

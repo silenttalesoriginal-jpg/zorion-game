@@ -32,7 +32,64 @@ const settingsPanel = document.getElementById("settingsPanel");
 const soundToggle = document.getElementById("soundToggle");
 const minimapToggle = document.getElementById("minimapToggle");
 const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+async function checkLogin() {
+    const res = await fetch("/api/me");
+    const data = await res.json();
 
+    if (!data.loggedIn) {
+        homeScreen.innerHTML = `
+            <div class="homeBox">
+                <h1>ZORION</h1>
+                <p>Please sign in to play</p>
+                <button onclick="window.location.href='/auth/google'">Continue with Google</button>
+            </div>
+        `;
+        return;
+    }
+
+    if (data.needsUsername) {
+        homeScreen.innerHTML = `
+            <div class="homeBox">
+                <h1>Choose Username</h1>
+                <input id="fixedUsernameInput" placeholder="Enter username" maxlength="16">
+                <button id="saveUsernameBtn">Save Username</button>
+                <p id="usernameError"></p>
+            </div>
+        `;
+
+        document.getElementById("saveUsernameBtn").onclick = async () => {
+            const username = document.getElementById("fixedUsernameInput").value.trim();
+
+            const saveRes = await fetch("/api/set-username", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username })
+            });
+
+            const saveData = await saveRes.json();
+
+            if (!saveData.success) {
+                document.getElementById("usernameError").textContent = saveData.message;
+                return;
+            }
+
+            location.reload();
+        };
+
+        return;
+    }
+
+    loggedUser = data.user;
+
+    if (nicknameInput) {
+        nicknameInput.value = loggedUser.username;
+        nicknameInput.disabled = true;
+    }
+}
+
+checkLogin();
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -40,6 +97,7 @@ let players = {};
 let myId = null;
 let joinedGame = false;
 let selectedColor = "#ff0000";
+let loggedUser = null;
 let isBoosting = false;
 let tabOpen = false;
 let secretTyped = "";
@@ -629,7 +687,7 @@ updateHomeColor(selectedColor);
 playBtn.addEventListener("click", () => {
     initAudio();
 
-    let nickname = nicknameInput.value.trim();
+    let nickname = loggedUser ? loggedUser.username : nicknameInput.value.trim();
 
     if (nickname.length < 1) {
         nickname = "Player";
