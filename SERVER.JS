@@ -1,13 +1,74 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-
+const session = require("express-session");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static("public"));
+app.use(session({
+    secret: process.env.SESSION_SECRET || "zorion_secret",
+    resave: false,
+    saveUninitialized: false
+}));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.BASE_URL || "http://localhost:3000"}/auth/google/callback`
+}, (accessToken, refreshToken, profile, done) => {
+    return done(null, {
+        googleId: profile.id,
+        name: profile.displayName,
+        email: profile.emails?.[0]?.value || ""
+    });
+}));
+
+app.get("/auth/google",
+    passport.authenticate("google", {
+        scope: ["profile", "email"]
+    })
+);
+
+app.get("/auth/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "/"
+    }),
+    (req, res) => {
+        res.redirect("/");
+    }
+);
+
+app.get("/api/me", (req, res) => {
+    if (!req.user) {
+        return res.json({ loggedIn: false });
+    }
+
+    res.json({
+        loggedIn: true,
+        user: req.user
+    });
+});
+
+app.get("/logout", (req, res) => {
+    req.logout(() => {
+        res.redirect("/");
+    });
+});
 const players = {};
 
 let bombPickups = [];
