@@ -35,6 +35,7 @@ const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 async function checkLogin() {
     const res = await fetch("/api/me");
     const data = await res.json();
+    homeScreen.classList.remove("authLoading");
 
     if (!data.loggedIn) {
         homeScreen.innerHTML = `
@@ -117,10 +118,8 @@ async function checkLogin() {
                 <div class="sideLogo">ZORION</div>
 
                 <button class="sideBtn active" id="enterGameBtn">▶ PLAY</button>
-                <button class="sideBtn">🎨 SKINS</button>
+                 button class="sideBtn" id="skinsBtn">🎨 SKINS</button>
                 <button class="sideBtn">🏆 LEADERBOARD</button>
-                <button class="sideBtn">📊 STATS</button>
-                <button class="sideBtn">⚙ SETTINGS</button>
 
                 <button class="logoutBtn" onclick="window.location.href='/logout'">↪ LOGOUT</button>
             </div>
@@ -129,28 +128,29 @@ async function checkLogin() {
                 <div class="mainTitle">ZORION</div>
                 <div class="mainSub">BATTLE • SURVIVE • DOMINATE</div>
 
-                <div class="playCards">
-                    <div class="playCard">
-                        <div class="cardIcon">👥</div>
-                        <h3>QUICK PLAY</h3>
-                        <p>Jump into a match and play online</p>
-                        <button id="quickPlayBtn">PLAY NOW</button>
-                    </div>
+                
+                    <div class="playCards">
+    <div class="playCard">
+        <div class="cardIcon">👥</div>
+        <h3>QUICK PLAY</h3>
+        <p>Jump into a match and play online</p>
+        <button id="quickPlayBtn">PLAY NOW</button>
+    </div>
 
-                    <div class="playCard">
-                        <div class="cardIcon">➕</div>
-                        <h3>CREATE ROOM</h3>
-                        <p>Create your own room and invite friends</p>
-                        <button>CREATE</button>
-                    </div>
+    <div class="playCard">
+        <div class="cardIcon">➕</div>
+        <h3>CREATE ROOM</h3>
+        <p>Create a private room and invite friends</p>
+        <button id="createRoomBtn">CREATE</button>
+    </div>
 
-                    <div class="playCard">
-                        <div class="cardIcon">🔗</div>
-                        <h3>JOIN ROOM</h3>
-                        <p>Join with room code and play together</p>
-                        <button>JOIN</button>
-                    </div>
-                </div>
+    <div class="playCard">
+        <div class="cardIcon">🔗</div>
+        <h3>JOIN ROOM</h3>
+        <p>Enter a room code and play together</p>
+        <button id="joinRoomBtn">JOIN</button>
+    </div>
+</div>
             </div>
 
             <div class="profilePanel">
@@ -185,6 +185,11 @@ async function checkLogin() {
     document.getElementById("enterGameBtn").onclick = () => {
         startGameWithLoggedUser();
     };
+    document.getElementById("skinsBtn").onclick = showSkinsPage;
+
+document.getElementById("createRoomBtn").onclick = showCreateRoomPage;
+
+document.getElementById("joinRoomBtn").onclick = showJoinRoomPage;
 }
 
 checkLogin();
@@ -210,6 +215,140 @@ function startGameWithLoggedUser() {
     updateGameOnlyUI();
     updateBombUI();
 }
+const skinColors = [
+    "#ff0000", "#ff6600", "#ffcc00", "#00ff66", "#00eaff",
+    "#0066ff", "#8b2cff", "#ff00cc", "#ffffff", "#111111",
+    "#ff3c7a", "#7aff00", "#00ffaa", "#7aa2ff", "#d400ff",
+    "#ffd700", "#ff1493", "#39ff14", "#00ffff", "#ff4500",
+    "#9400d3", "#1e90ff"
+];
+
+function showSkinsPage() {
+    const main = document.querySelector(".mainHomeArea");
+    if (!main) return;
+
+    main.innerHTML = `
+        <div class="mainTitle">SKINS</div>
+        <div class="mainSub">CHOOSE YOUR ZORION STYLE</div>
+
+        <div class="skinsGrid">
+            ${skinColors.map((color, i) => `
+                <div class="skinCard" data-color="${color}">
+                    <div class="skinPreview" style="background:${color}; box-shadow:0 0 35px ${color};"></div>
+                    <h3>Skin ${i + 1}</h3>
+                    <p>${color}</p>
+                    <button>USE</button>
+                </div>
+            `).join("")}
+        </div>
+    `;
+
+    document.querySelectorAll(".skinCard").forEach(card => {
+        card.onclick = () => {
+            selectedColor = card.dataset.color;
+
+            document.querySelectorAll(".skinCard").forEach(c => {
+                c.classList.remove("selected");
+            });
+
+            card.classList.add("selected");
+        };
+    });
+}
+
+function showCreateRoomPage() {
+    if (!loggedUser) return;
+
+    socket.emit("createRoom", {
+        username: loggedUser.username
+    });
+}
+
+function showJoinRoomPage() {
+    const main = document.querySelector(".mainHomeArea");
+    if (!main) return;
+
+    main.innerHTML = `
+        <div class="mainTitle">JOIN ROOM</div>
+        <div class="mainSub">ENTER YOUR FRIEND'S CODE</div>
+
+        <div class="roomJoinBox">
+            <input id="roomCodeInput" placeholder="Enter 6 digit code" maxlength="6">
+            <button id="confirmJoinRoomBtn">JOIN ROOM</button>
+            <p id="roomJoinError"></p>
+        </div>
+    `;
+
+    document.getElementById("confirmJoinRoomBtn").onclick = () => {
+        const code = document.getElementById("roomCodeInput").value.trim().toLowerCase();
+
+        socket.emit("joinRoom", {
+            code,
+            username: loggedUser.username
+        });
+    };
+}
+
+socket.on("roomError", (msg) => {
+    const err = document.getElementById("roomJoinError");
+
+    if (err) {
+        err.textContent = msg;
+    }
+});
+
+socket.on("roomUpdate", (room) => {
+    showRoomLobby(room);
+});
+
+function showRoomLobby(room) {
+    const main = document.querySelector(".mainHomeArea");
+    if (!main) return;
+
+    const playersList = Object.values(room.players || {});
+
+    main.innerHTML = `
+        <div class="mainTitle">ROOM</div>
+        <div class="mainSub">PRIVATE ZORION LOBBY</div>
+
+        <div class="roomCodeBox">
+            <span>CODE</span>
+            <h2>${room.code}</h2>
+            <button id="copyRoomCodeBtn">COPY CODE</button>
+        </div>
+
+        <div class="roomPlayersGrid">
+            ${playersList.map(p => `
+                <div class="roomProfile">
+                    <div class="roomAvatar">
+                        <span>Z</span>
+                    </div>
+                    <h3>${p.username}</h3>
+                    <p>Zorion Player</p>
+                </div>
+            `).join("")}
+        </div>
+
+        <div class="roomActions">
+            <button id="startRoomGameBtn">ENTER GAME</button>
+            <button id="leaveRoomBtn">LEAVE ROOM</button>
+        </div>
+    `;
+
+    document.getElementById("copyRoomCodeBtn").onclick = () => {
+        navigator.clipboard.writeText(room.code);
+        document.getElementById("copyRoomCodeBtn").textContent = "COPIED!";
+    };
+
+    document.getElementById("startRoomGameBtn").onclick = () => {
+        startGameWithLoggedUser();
+    };
+
+    document.getElementById("leaveRoomBtn").onclick = () => {
+        socket.emit("leaveRoom");
+        location.reload();
+    };
+}
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -218,6 +357,7 @@ let myId = null;
 let joinedGame = false;
 let selectedColor = "#ff0000";
 let loggedUser = null;
+homeScreen.classList.add("authLoading");
 let isBoosting = false;
 let tabOpen = false;
 let secretTyped = "";

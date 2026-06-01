@@ -1361,3 +1361,180 @@ canvas {
         flex-direction: column;
     }
 }
+#homeScreen.authLoading > * {
+    display: none !important;
+}
+.skinsGrid {
+    width: 100%;
+    max-height: 62vh;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    padding: 10px;
+}
+
+.skinCard {
+    background: rgba(5, 12, 32, 0.78);
+    border: 1px solid rgba(130, 160, 255, 0.25);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 0 25px rgba(83, 109, 255, 0.12);
+    transition: 0.2s;
+}
+
+.skinCard:hover,
+.skinCard.selected {
+    transform: translateY(-4px);
+    border-color: #00eaff;
+    box-shadow: 0 0 30px rgba(0, 234, 255, 0.35);
+}
+
+.skinPreview {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    border: 3px solid white;
+}
+
+.skinCard h3 {
+    margin: 8px 0;
+}
+
+.skinCard p {
+    color: #b8c8ff;
+    font-size: 12px;
+}
+
+.skinCard button {
+    width: 100%;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #315cff, #a72cff);
+    color: white;
+    font-weight: 900;
+}
+
+.roomCodeBox,
+.roomJoinBox {
+    background: rgba(5, 12, 32, 0.78);
+    border: 1px solid rgba(130, 160, 255, 0.25);
+    border-radius: 18px;
+    padding: 28px;
+    text-align: center;
+    box-shadow: 0 0 35px rgba(83, 109, 255, 0.18);
+    margin-bottom: 25px;
+}
+
+.roomCodeBox span {
+    color: #00eaff;
+    font-weight: 900;
+    letter-spacing: 4px;
+}
+
+.roomCodeBox h2 {
+    font-size: 46px;
+    letter-spacing: 10px;
+    margin: 12px 0;
+    color: white;
+    text-shadow: 0 0 25px #00eaff;
+}
+
+.roomCodeBox button,
+.roomJoinBox button,
+.roomActions button {
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #315cff, #a72cff);
+    color: white;
+    font-weight: 900;
+    padding: 0 22px;
+    cursor: pointer;
+}
+
+.roomJoinBox input {
+    width: 260px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid rgba(130, 160, 255, 0.35);
+    background: rgba(0,0,0,0.35);
+    color: white;
+    font-size: 22px;
+    text-align: center;
+    letter-spacing: 6px;
+    margin-right: 10px;
+    outline: none;
+}
+
+#roomJoinError {
+    color: #ff5c7a;
+    font-weight: 800;
+}
+
+.roomPlayersGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    width: 100%;
+    max-width: 850px;
+}
+
+.roomProfile {
+    background: rgba(5, 12, 32, 0.78);
+    border: 1px solid rgba(130, 160, 255, 0.25);
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(137, 43, 255, 0.16);
+}
+
+.roomAvatar {
+    width: 74px;
+    height: 74px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #00eaff, #673cff, #140018);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px #7a3cff;
+    border: 2px solid white;
+}
+
+.roomAvatar span {
+    font-size: 34px;
+    font-weight: 900;
+    font-style: italic;
+}
+
+.roomProfile h3 {
+    margin: 8px 0 4px;
+}
+
+.roomProfile p {
+    color: #b8c8ff;
+    font-size: 12px;
+}
+
+.roomActions {
+    margin-top: 28px;
+    display: flex;
+    gap: 14px;
+}
+
+@media (max-width: 900px) {
+    .skinsGrid,
+    .roomPlayersGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .roomJoinBox input {
+        width: 100%;
+        margin: 0 0 12px 0;
+    }
+}

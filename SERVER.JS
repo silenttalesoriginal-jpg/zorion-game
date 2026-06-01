@@ -123,6 +123,7 @@ app.get("/logout", (req, res) => {
     });
 });
 const players = {};
+const rooms = {};
 const users = {};
 let bombPickups = [];
 let placedBombs = [];
@@ -1561,9 +1562,84 @@ io.on("connection", (socket) => {
             io.emit("playerDisconnected", socket.id);
         }
     });
+socket.on("createRoom", (data) => {
+    const username = String(data.username || "Player").substring(0, 16);
 
+    let code = "";
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+    do {
+        code = "";
+        for (let i = 0; i < 6; i++) {
+            code += chars[Math.floor(Math.random() * chars.length)];
+        }
+    } while (rooms[code]);
+
+    rooms[code] = {
+        code,
+        players: {}
+    };
+
+    rooms[code].players[socket.id] = {
+        id: socket.id,
+        username
+    };
+
+    socket.join(code);
+    socket.roomCode = code;
+
+    io.to(code).emit("roomUpdate", rooms[code]);
+});
+
+socket.on("joinRoom", (data) => {
+    const code = String(data.code || "").toLowerCase().trim();
+    const username = String(data.username || "Player").substring(0, 16);
+
+    if (!rooms[code]) {
+        socket.emit("roomError", "Room not found");
+        return;
+    }
+
+    rooms[code].players[socket.id] = {
+        id: socket.id,
+        username
+    };
+
+    socket.join(code);
+    socket.roomCode = code;
+
+    io.to(code).emit("roomUpdate", rooms[code]);
+});
+
+socket.on("leaveRoom", () => {
+    const code = socket.roomCode;
+
+    if (code && rooms[code]) {
+        delete rooms[code].players[socket.id];
+        socket.leave(code);
+
+        if (Object.keys(rooms[code].players).length === 0) {
+            delete rooms[code];
+        } else {
+            io.to(code).emit("roomUpdate", rooms[code]);
+        }
+    }
+
+    socket.roomCode = null;
+});
     socket.on("disconnect", () => {
         console.log("Socket disconnected:", socket.id);
+        const code = socket.roomCode;
+
+if (code && rooms[code]) {
+    delete rooms[code].players[socket.id];
+
+    if (Object.keys(rooms[code].players).length === 0) {
+        delete rooms[code];
+    } else {
+        io.to(code).emit("roomUpdate", rooms[code]);
+    }
+}
 
         if (players[socket.id]) {
             delete players[socket.id];
